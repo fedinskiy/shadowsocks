@@ -40,7 +40,7 @@ folder=$(ssh $1 'pwd')/ssocks
 cat > socks.service <<EOF
 [Unit]
 Description=Podman service for shadowsocks
-Documentation=https://github.com/fedinskiy/deploy-vpn
+Documentation=https://github.com/fedinskiy/shadowsocks
 Wants=network-online.target
 After=network-online.target
 RequiresMountsFor=/run/user/1000/containers
