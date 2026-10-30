@@ -5,7 +5,7 @@ ip=${1##*@}
 set -euo pipefail
 
 port=${2:?10500}
-version=${3:?1.15.4}
+version=${3:?1.25.0}
 echo "Enter password"
 read -s password
 
@@ -57,16 +57,9 @@ Type=forking
 WantedBy=default.target
 EOF
 
-echo "Downloading the binaries of version $version"
-curl -LO https://github.com/shadowsocks/shadowsocks-rust/releases/download/v$version/shadowsocks-v$version.x86_64-unknown-linux-gnu.tar.xz
-curl -LO https://github.com/shadowsocks/shadowsocks-rust/releases/download/v$version/shadowsocks-v$version.x86_64-unknown-linux-gnu.tar.xz.sha256
-
-sha256sum -c shadowsocks-v$version.x86_64-unknown-linux-gnu.tar.xz.sha256
-tar -xaf shadowsocks-v$version.x86_64-unknown-linux-gnu.tar.xz ssserver sslocal
-
 echo "Creating container"
-podman build -t quay.io/fdudinsk/shadowsocks -f Dockerfile
-podman push quay.io/fdudinsk/shadowsocks
+podman build --build-arg VERSION=$version -t docker.io/fedinsky/shadowsocks -f Dockerfile
+podman push docker.io/fedinsky/shadowsocks
 
 echo "Gathering data about the server"
 result=$(ssh $1 /bin/bash << 'EOF'
@@ -94,7 +87,7 @@ podman create --name socks -p $port:$port \
 --conmon-pidfile=/run/user/${uid}/socks-conmon.pid \
 --pidfile=/run/user/${uid}/socks.pid \
 --mount type=bind,source=${folder}/server.conf,target=/server.conf,readonly \
-quay.io/fdudinsk/shadowsocks
+docker.io/fedinsky/shadowsocks
 
 loginctl enable-linger # to keep server running after logout
 systemctl --user stop socks
